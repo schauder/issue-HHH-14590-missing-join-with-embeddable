@@ -88,13 +88,14 @@ public class JPAUnitTestCase {
 		em.getTransaction().commit();
 		em.close();
 	}
+
 	private Long queryForSecondaryEmbeddableId(EntityManager em) {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
 		CriteriaQuery<Long> query = builder.createQuery(Long.class);
 		Root<RootEntity> root = query.from(RootEntity.class);
 
-		Join<Object, Object> join = root.join("secondaryEmbeddable", JoinType.INNER);
+		Join<Object, Object> join = root.join("secondaryEmbeddable");
 
 		Path<Object> name = join.get("secName");
 
@@ -124,7 +125,7 @@ public class JPAUnitTestCase {
 		CriteriaQuery<RootEntity> query = builder.createQuery(RootEntity.class);
 		Root<RootEntity> root = query.from(RootEntity.class);
 
-		Join<Object, Object> join = root.join("secondaryEmbeddable", JoinType.INNER);
+		Join<Object, Object> join = root.join("secondaryEmbeddable");
 
 		Path<Object> name = join.get("secName");
 
