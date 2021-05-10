@@ -74,6 +74,35 @@ public class JPAUnitTestCase {
 		em.close();
 	}
 
+
+	@Test
+	public void secondarySingleColumnSelectNoJoin() throws Exception {
+		EntityManager em = entityManagerFactory.createEntityManager();
+		em.getTransaction().begin();
+
+		createRoot(em);
+		Object loaded = queryForSecondaryEmbeddableIdNoJoin(em);
+
+		assertNotNull(loaded);
+
+		em.getTransaction().commit();
+		em.close();
+	}
+	private Long queryForSecondaryEmbeddableId(EntityManager em) {
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<Long> query = builder.createQuery(Long.class);
+		Root<RootEntity> root = query.from(RootEntity.class);
+
+		Join<Object, Object> join = root.join("secondaryEmbeddable", JoinType.INNER);
+
+		Path<Object> name = join.get("secName");
+
+		query.select(root.get("id")).where(builder.equal(name, "secondary"));
+
+		return em.createQuery(query).getSingleResult();
+	}
+
 	private Long queryForPlainEmbeddable(EntityManager em) {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
@@ -89,20 +118,6 @@ public class JPAUnitTestCase {
 		return em.createQuery(query).getSingleResult();
 	}
 
-	private Long queryForSecondaryEmbeddableId(EntityManager em) {
-
-		CriteriaBuilder builder = em.getCriteriaBuilder();
-		CriteriaQuery<Long> query = builder.createQuery(Long.class);
-		Root<RootEntity> root = query.from(RootEntity.class);
-
-		Join<Object, Object> join = root.join("secondaryEmbeddable", JoinType.INNER);
-
-		Path<Object> name = join.get("secName");
-
-		query.select(root.get("id")).where(builder.equal(name, "secondary"));
-
-		return em.createQuery(query).getSingleResult();
-	}
 	private RootEntity queryForSecondaryEmbeddable(EntityManager em) {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
@@ -114,6 +129,21 @@ public class JPAUnitTestCase {
 		Path<Object> name = join.get("secName");
 
 		query.select(root).where(builder.equal(name, "secondary"));
+
+		return em.createQuery(query).getSingleResult();
+	}
+
+	private Long queryForSecondaryEmbeddableIdNoJoin(EntityManager em) {
+
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<Long> query = builder.createQuery(Long.class);
+		Root<RootEntity> root = query.from(RootEntity.class);
+
+		Path<Object> path = root.get("secondaryEmbeddable");
+
+		Path<Object> name = path.get("secName");
+
+		query.select(root.get("id")).where(builder.equal(name, "secondary"));
 
 		return em.createQuery(query).getSingleResult();
 	}
