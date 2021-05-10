@@ -26,11 +26,11 @@
             <property name="hibernate.hbm2ddl.auto" value="create-drop"/>
 
             <property name="hibernate.max_fetch_depth" value="5"/>
-
+<!--
             <property name="hibernate.cache.region_prefix" value="hibernate.test"/>
             <property name="hibernate.cache.region.factory_class"
                       value="org.hibernate.testing.cache.CachingRegionFactory"/>
-
+-->
             <!--NOTE: hibernate.jdbc.batch_versioned_data should be set to false when testing with Oracle-->
             <property name="hibernate.jdbc.batch_versioned_data" value="true"/>
 
