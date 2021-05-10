@@ -6,6 +6,7 @@ import javax.persistence.Persistence;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Root;
 
@@ -13,8 +14,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
-
-import java.util.function.Function;
 
 /**
  * This template demonstrates how to develop a test case for Hibernate ORM, using the Java Persistence API.
@@ -33,15 +32,13 @@ public class JPAUnitTestCase {
 		entityManagerFactory.close();
 	}
 
-	// Entities are auto-discovered, so just add them anywhere on class-path
-	// Add your tests, using standard JUnit.
 	@Test
-	public void hhh123Test() throws Exception {
+	public void plain() throws Exception {
 		EntityManager em = entityManagerFactory.createEntityManager();
 		em.getTransaction().begin();
 
 		createRoot(em);
-		RootEntity loaded = queryForPlainEmbeddable(em);
+		Long loaded = queryForPlainEmbeddable(em);
 
 		assertNotNull(loaded);
 
@@ -49,29 +46,77 @@ public class JPAUnitTestCase {
 		em.close();
 	}
 
-	private RootEntity queryForPlainEmbeddable(EntityManager em) {
+	@Test
+	public void secondarySingleColumnSelect() throws Exception {
+		EntityManager em = entityManagerFactory.createEntityManager();
+		em.getTransaction().begin();
+
+		createRoot(em);
+		Object loaded = queryForSecondaryEmbeddableId(em);
+
+		assertNotNull(loaded);
+
+		em.getTransaction().commit();
+		em.close();
+	}
+
+	@Test
+	public void secondaryEntitySelect() throws Exception {
+		EntityManager em = entityManagerFactory.createEntityManager();
+		em.getTransaction().begin();
+
+		createRoot(em);
+		Object loaded = queryForSecondaryEmbeddable(em);
+
+		assertNotNull(loaded);
+
+		em.getTransaction().commit();
+		em.close();
+	}
+
+	private Long queryForPlainEmbeddable(EntityManager em) {
 
 		CriteriaBuilder builder = em.getCriteriaBuilder();
-		CriteriaQuery<RootEntity> query = builder.createQuery(RootEntity.class);
+		CriteriaQuery<Long> query = builder.createQuery(Long.class);
 		Root<RootEntity> root = query.from(RootEntity.class);
 
 		Join<Object, Object> join = root.join("plainEmbeddable");
 
 		Path<Object> name = join.get("plainName");
 
-		query.select(root).where(builder.equal(name, "primary"));
+		query.select(root.get("id")).where(builder.equal(name, "primary"));
 
 		return em.createQuery(query).getSingleResult();
 	}
 
-	private <T> T withTransaction(EntityManager entityManager, Function<EntityManager, T> action) {
+	private Long queryForSecondaryEmbeddableId(EntityManager em) {
 
-		T t = action.apply(entityManager);
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<Long> query = builder.createQuery(Long.class);
+		Root<RootEntity> root = query.from(RootEntity.class);
 
+		Join<Object, Object> join = root.join("secondaryEmbeddable", JoinType.INNER);
 
-		return t;
+		Path<Object> name = join.get("secName");
+
+		query.select(root.get("id")).where(builder.equal(name, "secondary"));
+
+		return em.createQuery(query).getSingleResult();
 	}
+	private RootEntity queryForSecondaryEmbeddable(EntityManager em) {
 
+		CriteriaBuilder builder = em.getCriteriaBuilder();
+		CriteriaQuery<RootEntity> query = builder.createQuery(RootEntity.class);
+		Root<RootEntity> root = query.from(RootEntity.class);
+
+		Join<Object, Object> join = root.join("secondaryEmbeddable", JoinType.INNER);
+
+		Path<Object> name = join.get("secName");
+
+		query.select(root).where(builder.equal(name, "secondary"));
+
+		return em.createQuery(query).getSingleResult();
+	}
 
 	private RootEntity createRoot(EntityManager em) {
 
@@ -86,7 +131,7 @@ public class JPAUnitTestCase {
 		RootEntity root = new RootEntity();
 		root.rootValue = "root";
 		root.plainEmbeddable = plainEmbeddable;
-		root.secondTableEmbeddable = secondTableEmbeddable;
+		root.secondaryEmbeddable = secondTableEmbeddable;
 
 		em.persist(root);
 		return root;

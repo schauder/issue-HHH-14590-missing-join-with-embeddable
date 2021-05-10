@@ -34,5 +34,5 @@ public class RootEntity {
 	PlainEmbeddable plainEmbeddable;
 
 	@Embedded
-	SecondTableEmbeddable secondTableEmbeddable;
+	SecondTableEmbeddable secondaryEmbeddable;
 }
